@@ -56,6 +56,35 @@
     white-space:nowrap;pointer-events:none;transition:opacity .8s ease;
   }
 
+  /* ---------- 参观模式 ---------- */
+  .tour-start{
+    position:fixed;right:16px;bottom:16px;z-index:12;cursor:pointer;
+    font-family:inherit;font-size:14px;letter-spacing:.3em;text-indent:.3em;
+    padding:12px 26px;border:0;border-radius:999px;
+    background:linear-gradient(135deg,#c08c46,#9a6a30);color:#fff8ec;
+    box-shadow:0 6px 22px rgba(122,84,38,.35);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .tour-start:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(122,84,38,.4)}
+  .tour-card{
+    position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:12;
+    width:min(560px,calc(100vw - 28px));
+    background:rgba(250,243,227,.92);border:1px solid var(--line);border-radius:18px;
+    padding:14px 20px 12px;backdrop-filter:blur(8px);
+    box-shadow:0 10px 30px rgba(90,64,28,.18);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .tour-card.hide{opacity:0;transform:translateX(-50%) translateY(16px);pointer-events:none}
+  .tour-card .t-step{font-size:14px;font-weight:700;letter-spacing:.3em;color:var(--accent)}
+  .tour-card .t-desc{margin-top:6px;font-size:13px;line-height:1.9;color:var(--ink)}
+  .tour-card .t-ctrl{margin-top:10px;display:flex;gap:8px;justify-content:flex-end}
+  .tour-card .t-ctrl button{
+    font-family:inherit;font-size:12px;letter-spacing:.16em;cursor:pointer;
+    padding:6px 14px;border-radius:999px;border:1px solid var(--line);
+    background:transparent;color:var(--ink-soft);transition:all .2s ease;
+  }
+  .tour-card .t-ctrl button:hover{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+
   /* ---------- 载入幕布 ---------- */
   #veil{
     position:fixed;inset:0;z-index:40;background:linear-gradient(180deg,#faf3e3 0%,#f1e3c4 100%);
@@ -90,6 +119,18 @@
 
 <div class="hint" id="hint">拖动旋转 · 滚轮缩放 · 右上角切换视角</div>
 
+<button class="tour-start" id="tourStart">▶ 开 始 参 观</button>
+<div class="tour-card hide" id="tourCard">
+  <div class="t-step" id="tourStep">湖畔木宅</div>
+  <div class="t-desc" id="tourDesc">正在准备参观…</div>
+  <div class="t-ctrl">
+    <button id="tourPrev">上 一 个</button>
+    <button id="tourPause">暂 停</button>
+    <button id="tourNext">下 一 个</button>
+    <button id="tourExit">退 出 参 观</button>
+  </div>
+</div>
+
 <div id="veil">
   <div class="v-zh">湖畔木宅</div>
   <div class="v-en">LAKESIDE TIMBER HOUSE</div>
@@ -108,6 +149,11 @@
     "three/addons/utils/BufferGeometryUtils.js": "./lib/addons/utils/BufferGeometryUtils.js"
   }
 }
+</script>
+<script>
+  window.__errs = [];
+  addEventListener('error', e => window.__errs.push(e.message + ' @ ' + (e.filename||'') + ':' + e.lineno));
+  addEventListener('unhandledrejection', e => window.__errs.push('rej: ' + (e.reason && e.reason.message || e.reason)));
 </script>
 <script type="module" src="./js/main.js"></script>
 </body>
