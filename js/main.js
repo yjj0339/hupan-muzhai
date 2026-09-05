@@ -1530,7 +1530,7 @@ function tourUpdate(dt) {
     }
   }
 }
-window.__tour = { start: () => { tourStart(); tourNext(); }, go: (i) => { tourStart(); tourGoStop(i); tour.phase = 'dwell'; tour.hold = 1e9; camera.position.set(...TOUR[i].p); controls.target.set(...TOUR[i].t); camera.lookAt(...TOUR[i].t); tourSetCaption(TOUR[i]); }, next: tourNext, exit: tourStop };
+window.__tour = { start: () => { tourStart(); tourNext(); }, go: (i) => { tourStart(); tourGoStop(i); tour.phase = 'dwell'; tour.hold = 1e9; camera.position.set(...TOUR[i].p); controls.target.set(...TOUR[i].t); camera.lookAt(...TOUR[i].t); tourSetCaption(TOUR[i]); }, next: tourNext, exit: tourStop, state: () => tour ? { i: tour.i, phase: tour.phase, k: tour.k, dur: tour.dur, hold: tour.hold, p0: tour.p0 && tour.p0.toArray(), pc: tour.pc && tour.pc.toArray(), p1: tour.p1 && tour.p1.toArray(), cam: camera.position.toArray() } : null };
 if (QS.get('tour') === '1') { tourStart(); tourNext(); }
 
 function goView(i, instant = false) {
