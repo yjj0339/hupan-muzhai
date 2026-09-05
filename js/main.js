@@ -149,6 +149,10 @@ const texDeck = makeWood(rng, '#c09a68', '#96683a');
 texDeck.repeat.set(3, 3);
 const texFloorIn = makeWood(rng, '#c8a271', '#9a6c3e');
 texFloorIn.repeat.set(14, 8);
+const texDeckFine = makeWood(rng, '#bb9260', '#8f6238');
+texDeckFine.repeat.set(18, 2);
+const M2deck = new THREE.MeshStandardMaterial({ map: texDeckFine, roughness: 0.8 });
+const spandrelMat = new THREE.MeshStandardMaterial({ color: 0x392c1b, roughness: 0.85 });
 const texPlaster = makePlaster(rng);
 const texGround = makeGround(rng);
 texGround.repeat.set(26, 26);
@@ -477,8 +481,9 @@ house.add(box(BLD_HW * 2 + 0.5, 1.9, BLD_HD * 2 + 0.6, M.travDark, 0, 0.38, 0));
   house.add(cheekL, cheekR);
 }
 
-// ---- 格栅鳍片（InstancedMesh 收集） ----
+// ---- 格栅鳍片（InstancedMesh 收集；随机木色差 + 偶尔开合的鳍片） ----
 const finGeo = new THREE.BoxGeometry(0.10, 1, 0.10);
+const finTints = ['#b0824e', '#a87946', '#bb8f58', '#9e7042', '#b5854e'];
 const fins = [];
 const backings = []; // 格栅后面衬一层暗色，让缝隙读作阴影
 function louverScreen(axis, fixed, a0, a1, y0, y1) {
@@ -495,9 +500,10 @@ function louverScreen(axis, fixed, a0, a1, y0, y1) {
   }
   for (let a = a0; a <= a1 + 0.001; a += 0.245) {
     const jitter = (rng() - 0.5) * 0.02;
-    const ry = (rng() - 0.5) * 0.06;
-    if (axis === 'z') fins.push({ p: [a + jitter, cy, fixed], s: [1, h, 1], r: [0, ry, 0] });
-    else fins.push({ p: [fixed, cy, a + jitter], s: [1, h, 1], r: [0, ry, 0] });
+    const ry = (rng() - 0.5) * 0.06 + (rng() < 0.1 ? (rng() > 0.5 ? 0.55 : -0.55) : 0); // 偶尔开合
+    const c = finTints[(rng() * finTints.length) | 0];
+    if (axis === 'z') fins.push({ p: [a + jitter, cy, fixed], s: [1, h, 1], r: [0, ry, 0], c });
+    else fins.push({ p: [fixed, cy, a + jitter], s: [1, h, 1], r: [0, ry, 0], c });
   }
   // 端柱
   const postS = [1.1, h + 0.1, 1.1];
@@ -525,6 +531,11 @@ function glassWall(w, h, cx, cy, cz, ry = 0) {
       s: [1, h - 0.06, 1], r: [0, ry, 0],
     });
   }
+  // 门头横梃
+  mullions.push({
+    p: [cx, cy + h / 2 - 1.05, cz],
+    s: [w / 0.06 * 0.98, 0.06, 1], r: [0, ry, 0],
+  });
 }
 
 // ---- 每层立面 ----
@@ -566,6 +577,24 @@ for (let si = 0; si < 5; si++) {
   // 玻璃转角柱
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
     mullions.push({ p: [sx * (GLASS_X + 0.02), cy, sz * GLASS_Z], s: [1.4, h, 1.4] });
+  }
+
+  // 阳台木地板 + 无框玻璃栏板 + 楼层腰线（二层起）
+  if (!ground) {
+    for (const dz of [1, -1]) {
+      house.add(box(24.7, 0.06, 2.2, M2deck, 0, y0 + 0.03, dz * 7.05));
+      house.add(box(24.7, 1.0, 0.045, M.glass, 0, y0 + 0.6, dz * 8.02, false));
+      house.add(box(24.7, 0.05, 0.1, M.mullion, 0, y0 + 1.13, dz * 8.02));
+    }
+    for (const dx of [1, -1]) {
+      house.add(box(1.55, 0.06, 11.5, M2deck, dx * 11.62, y0 + 0.03, 0));
+      house.add(box(0.045, 1.0, 11.5, M.glass, dx * 12.42, y0 + 0.6, 0, false));
+      house.add(box(0.1, 0.05, 11.5, M.mullion, dx * 12.42, y0 + 1.13, 0));
+    }
+    house.add(box(21.0, 0.3, 0.12, spandrelMat, 0, y1 - 0.18, GLASS_Z - 0.09));
+    house.add(box(21.0, 0.3, 0.12, spandrelMat, 0, y1 - 0.18, -GLASS_Z + 0.09));
+    house.add(box(0.12, 0.3, 11.4, spandrelMat, GLASS_X + 0.09, y1 - 0.18, 0));
+    house.add(box(0.12, 0.3, 11.4, spandrelMat, -GLASS_X - 0.09, y1 - 0.18, 0));
   }
 
   // ---------- 室内（每层一个主题） ----------
@@ -660,17 +689,23 @@ for (let si = 0; si < 5; si++) {
   for (let i = 0; i <= 6; i++) {
     const x = -10.8 + i * 3.6;
     fins.push({ p: [x, (y0 + y1) / 2, 7.3], s: [1.3, h, 1.3] });
+    house.add(box(0.32, 0.09, 0.32, M.wood, x, y0 + 0.045, 7.3));   // 柱础
+    house.add(box(0.27, 0.07, 0.27, M.wood, x, y1 - 0.035, 7.3));   // 柱帽
   }
 }
 
 // ---- 屋顶花园 ----
 {
   const top = SLAB_YS[5] + SLAB_T; // 16.77
-  // 女儿墙
+  // 女儿墙 + 压顶
   house.add(box(BLD_HW * 2, 0.55, 0.26, M.trav, 0, top + 0.275, BLD_HD - 0.13));
   house.add(box(BLD_HW * 2, 0.55, 0.26, M.trav, 0, top + 0.275, -BLD_HD + 0.13));
   house.add(box(0.26, 0.55, BLD_HD * 2, M.trav, BLD_HW - 0.13, top + 0.275, 0));
   house.add(box(0.26, 0.55, BLD_HD * 2, M.trav, -BLD_HW + 0.13, top + 0.275, 0));
+  house.add(box(BLD_HW * 2 + 0.06, 0.06, 0.4, M.trav, 0, top + 0.58, BLD_HD - 0.13));
+  house.add(box(BLD_HW * 2 + 0.06, 0.06, 0.4, M.trav, 0, top + 0.58, -BLD_HD + 0.13));
+  house.add(box(0.4, 0.06, BLD_HD * 2 + 0.06, M.trav, BLD_HW - 0.13, top + 0.58, 0));
+  house.add(box(0.4, 0.06, BLD_HD * 2 + 0.06, M.trav, -BLD_HW + 0.13, top + 0.58, 0));
   // 种植土
   house.add(box(BLD_HW * 2 - 0.9, 0.16, BLD_HD * 2 - 0.9, M.soil, 0, top + 0.08, 0, false));
   // 灌木（避开前沿，防止低角度悬挑投影到玻璃上）
@@ -719,7 +754,7 @@ for (let si = 0; si < 5; si++) {
 
 // ---- 合并格栅 / 窗棂实例 ----
 {
-  const finMesh = instancedFrom(finGeo, M.wood, fins);
+  const finMesh = instancedFrom(finGeo, M.wood, fins, { colors: fins.map(f => f.c || '#b0824e') });
   house.add(finMesh);
   const mulMesh = instancedFrom(mulGeo, M.mullion, mullions);
   house.add(mulMesh);
