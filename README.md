@@ -1,11 +1,12 @@
 # 湖畔木宅 · Lakeside Timber House
 
+> **线上地址：https://yjj0339.github.io/hupan-muzhai/** （手机扫码打开 `qr-live.png`）
+
 用 Three.js 复刻的一座临水现代建筑：混凝土挑板、木格栅幕墙、玻璃大厅、屋顶草甸，
 俯瞰一池静水，黄昏光线，树影芦苇与岩石环绕。
 
 - 操作：拖动旋转 · 滚轮缩放 · 右上角切换四个机位
 - 技术：Three.js 0.170（WebGL2）· 程序化贴图（Canvas 生成，无外部资源）· Water 镜面反射 · Sky 大气散射
-- 线上地址：部署后见下方
 
 ## 本地预览
 
